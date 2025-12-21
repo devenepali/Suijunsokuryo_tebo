@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DMS Converter</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 400px; margin: 2rem auto; padding: 1rem; }
+    input, button { padding: 0.5rem; margin: 0.5rem 0; width: 100%; }
+    label { font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h1>Degree-Minute-Second Converter</h1>
+
+  <label for="degrees">Degrees:</label>
+  <input type="number" id="degrees" value="0" />
+
+  <label for="minutes">Minutes:</label>
+  <input type="number" id="minutes" value="0" />
+
+  <label for="seconds">Seconds:</label>
+  <input type="number" id="seconds" value="0" />
+
+  <button onclick="convertToDecimal()">Convert to Decimal Degrees</button>
+
+  <h2>Result:</h2>
+  <p id="result">0</p>
+
+  <script>
+    function convertToDecimal() {
+      const deg = parseFloat(document.getElementById('degrees').value) || 0;
+      const min = parseFloat(document.getElementById('minutes').value) || 0;
+      const sec = parseFloat(document.getElementById('seconds').value) || 0;
+
+      const decimal = deg + (min / 60) + (sec / 3600);
+      document.getElementById('result').textContent = decimal.toFixed(6) + '°';
+    }
+  </script>
+</body>
+</html>
