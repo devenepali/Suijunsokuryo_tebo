@@ -1,31 +1,48 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ja">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>DMS Converter</title>
+  <title>DMSコンバーター & 梅岡さんツール</title>
   <style>
     body { font-family: Arial, sans-serif; max-width: 400px; margin: 2rem auto; padding: 1rem; }
     input, button { padding: 0.5rem; margin: 0.5rem 0; width: 100%; }
-    label { font-weight: bold; }
+    label { font-weight: bold; display: block; margin-top: 1rem; }
+    h1, h2 { text-align: center; }
+    section { border: 1px solid #ccc; padding: 1rem; margin-bottom: 2rem; border-radius: 8px; }
   </style>
 </head>
 <body>
-  <h1>Degree-Minute-Second Converter</h1>
+  <h1>DMSコンバーター</h1>
+  <section>
+    <label for="degrees">度 (度):</label>
+    <input type="number" id="degrees" value="0" />
 
-  <label for="degrees">Degrees:</label>
-  <input type="number" id="degrees" value="0" />
+    <label for="minutes">分 (分):</label>
+    <input type="number" id="minutes" value="0" />
 
-  <label for="minutes">Minutes:</label>
-  <input type="number" id="minutes" value="0" />
+    <label for="seconds">秒 (秒):</label>
+    <input type="number" id="seconds" value="0" />
 
-  <label for="seconds">Seconds:</label>
-  <input type="number" id="seconds" value="0" />
+    <button onclick="convertToDecimal()">10進数に変換</button>
 
-  <button onclick="convertToDecimal()">Convert to Decimal Degrees</button>
+    <h2>結果:</h2>
+    <p id="result">0</p>
+  </section>
 
-  <h2>Result:</h2>
-  <p id="result">0</p>
+  <h1>梅岡さんツール</h1>
+  <section>
+    <label for="input1">数値1:</label>
+    <input type="number" id="input1" value="0" />
+
+    <label for="input2">数値2:</label>
+    <input type="number" id="input2" value="0" />
+
+    <button onclick="umeokaTool()">計算する</button>
+
+    <h2>結果:</h2>
+    <p id="umeokaResult">0</p>
+  </section>
 
   <script>
     function convertToDecimal() {
@@ -35,6 +52,15 @@
 
       const decimal = deg + (min / 60) + (sec / 3600);
       document.getElementById('result').textContent = decimal.toFixed(6) + '°';
+    }
+
+    // Example function for 梅岡さんツール: adds two numbers
+    function umeokaTool() {
+      const val1 = parseFloat(document.getElementById('input1').value) || 0;
+      const val2 = parseFloat(document.getElementById('input2').value) || 0;
+
+      const sum = val1 + val2;
+      document.getElementById('umeokaResult').textContent = sum;
     }
   </script>
 </body>
