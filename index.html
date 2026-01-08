@@ -5,123 +5,122 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>水準測量</title>
   <style>
-  :root{
-    --bd:#d0d7de;
-    --bg:#ffffff;
-    --bg2:#f6f8fa;
-    --sum:#fff8c5;
-    --txt:#24292f;
-    --muted:#57606a;
-    --radius:10px;
-  }
+    :root{
+      --bd:#d0d7de;
+      --bg:#ffffff;
+      --bg2:#f6f8fa;
+      --sum:#fff8c5;
+      --txt:#24292f;
+      --muted:#57606a;
+      --radius:10px;
+    }
 
-  body{
-    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans JP", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
-    margin: 12px;
-    color: var(--txt);
-    background: var(--bg);
-    -webkit-text-size-adjust: 100%;
-  }
+    body{
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans JP", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+      margin: 12px;
+      color: var(--txt);
+      background: var(--bg);
+      -webkit-text-size-adjust: 100%;
+    }
 
-  h1{ margin:0 0 10px; font-size: 18px; }
-  .note{ color:var(--muted); font-size: 12px; line-height: 1.5; margin-bottom: 10px; }
+    h1{ margin:0 0 10px; font-size: 18px; }
+    .note{ color:var(--muted); font-size: 12px; line-height: 1.5; margin-bottom: 10px; }
 
-  /* no horizontal scrolling container */
-  .wrap{
-    overflow: visible;
-    border:1px solid var(--bd);
-    border-radius: var(--radius);
-    max-width: 100%;
-  }
+    /* No horizontal scrolling; fit to screen */
+    .wrap{
+      overflow: visible;
+      border:1px solid var(--bd);
+      border-radius: var(--radius);
+      max-width: 100%;
+    }
 
-  table{
-    border-collapse: collapse;
-    width: 100%;
-    table-layout: fixed;   /* key: fit to screen */
-    background: var(--bg);
-  }
+    table{
+      border-collapse: collapse;
+      width: 100%;
+      table-layout: fixed;   /* key: fit columns to viewport */
+      background: var(--bg);
+    }
 
-  thead th{
-    position: sticky;
-    top: 0;
-    z-index: 3;
-    background: var(--bg2);
-    border:1px solid var(--bd);
-    padding: 8px 4px;
-    text-align:center;
-    font-weight:700;
-    font-size: 12px;
-    white-space: nowrap;
-  }
-  thead tr:nth-child(2) th{
-    top: 38px;
-    z-index: 3;
-  }
+    thead th{
+      position: sticky;
+      top: 0;
+      z-index: 3;
+      background: var(--bg2);
+      border:1px solid var(--bd);
+      padding: 8px 4px;
+      text-align:center;
+      font-weight:700;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+    thead tr:nth-child(2) th{
+      top: 38px;
+      z-index: 3;
+    }
 
-  tbody td, tfoot td{
-    border:1px solid var(--bd);
-    padding: 4px;
-    text-align:center;
-    font-size: 12px;
-    white-space: nowrap;
-  }
+    tbody td, tfoot td{
+      border:1px solid var(--bd);
+      padding: 4px;
+      text-align:center;
+      font-size: 12px;
+      white-space: nowrap;
+    }
 
-  input{
-    width: 100%;
-    box-sizing: border-box;
-    padding: 6px 4px;
-    border: 1px solid var(--bd);
-    border-radius: 8px;
-    font-size: 13px;
-    text-align: center;
-    background: #fff;
-    min-height: 36px; /* still tap-friendly but smaller to fit */
-  }
+    input{
+      width: 100%;
+      box-sizing: border-box;
+      padding: 6px 4px;
+      border: 1px solid var(--bd);
+      border-radius: 8px;
+      font-size: 13px;
+      text-align: center;   /* centered as requested */
+      background: #fff;
+      min-height: 36px;     /* mobile friendly */
+    }
 
-  input[readonly]{
-    background:#fbfbfb;
-    color:#111;
-  }
+    input[readonly]{
+      background:#fbfbfb;
+      color:#111;
+    }
 
-  tfoot td{
-    position: sticky;
-    bottom: 0;
-    z-index: 2;
-    background: var(--sum);
-    font-weight: 700;
-  }
-  tfoot input{ font-weight: 700; }
+    tfoot td{
+      position: sticky;
+      bottom: 0;
+      z-index: 2;
+      background: var(--sum);
+      font-weight: 700;
+    }
+    tfoot input{ font-weight: 700; }
 
-  .btns{
-    display:flex;
-    gap:10px;
-    margin-top: 10px;
-    flex-wrap: wrap;
-  }
-  button{
-    border:1px solid var(--bd);
-    background: var(--bg2);
-    padding: 10px 12px;
-    border-radius: 10px;
-    cursor:pointer;
-    font-size: 14px;
-    min-height: 44px;
-  }
+    .btns{
+      display:flex;
+      gap:10px;
+      margin-top: 10px;
+      flex-wrap: wrap;
+    }
+    button{
+      border:1px solid var(--bd);
+      background: var(--bg2);
+      padding: 10px 12px;
+      border-radius: 10px;
+      cursor:pointer;
+      font-size: 14px;
+      min-height: 44px;
+    }
 
-  /* Column widths: tune to fit */
-  th:nth-child(1), td:nth-child(1){ width: 12%; } /* 番号 */
-  th:nth-child(2), td:nth-child(2){ width: 18%; } /* 距離 */
-  th:nth-child(3), td:nth-child(3){ width: 18%; } /* 後視 */
-  th:nth-child(4), td:nth-child(4){ width: 18%; } /* 前視 */
-  th:nth-child(5), td:nth-child(5){ width: 17%; } /* 高低差 + */
-  th:nth-child(6), td:nth-child(6){ width: 17%; } /* 高低差 - */
+    /* Column widths (sum ~ 100%) */
+    th:nth-child(1), td:nth-child(1){ width: 12%; } /* 番号 */
+    th:nth-child(2), td:nth-child(2){ width: 18%; } /* 距離 */
+    th:nth-child(3), td:nth-child(3){ width: 18%; } /* 後視 */
+    th:nth-child(4), td:nth-child(4){ width: 18%; } /* 前視 */
+    th:nth-child(5), td:nth-child(5){ width: 17%; } /* 高低差 + */
+    th:nth-child(6), td:nth-child(6){ width: 17%; } /* 高低差 - */
 
-  /* Extra small phones: reduce text a bit more */
-  @media (max-width: 360px){
-    thead th{ font-size: 11px; padding: 6px 3px; }
-    input{ font-size: 12px; min-height: 34px; }
-  }
-</style>
+    @media (max-width: 360px){
+      thead th{ font-size: 11px; padding: 6px 3px; }
+      input{ font-size: 12px; min-height: 34px; }
+    }
+  </style>
 </head>
 <body>
   <h1>水準測量（27行 + 合計行）</h1>
@@ -164,124 +163,121 @@
     <button id="clearBtn" type="button">全クリア</button>
   </div>
 
-<script>
-  const N = 27;
+  <script>
+    const N = 27;
 
-  // Convert full-width digits/period/minus to half-width to avoid mobile IME issues
-  function toHalfWidth(str){
-    return (str ?? "")
-      .toString()
-      .replace(/[０-９]/g, ch => String.fromCharCode(ch.charCodeAt(0) - 0xFEE0))
-      .replace(/．/g, ".")
-      .replace(/－/g, "-")
-      .replace(/，/g, ",")
-      .trim();
-  }
+    // Convert full-width digits/period/minus to half-width (mobile IME friendly)
+    function toHalfWidth(str){
+      return (str ?? "")
+        .toString()
+        .replace(/[０-９]/g, ch => String.fromCharCode(ch.charCodeAt(0) - 0xFEE0))
+        .replace(/．/g, ".")
+        .replace(/－/g, "-")
+        .replace(/，/g, ",")
+        .trim();
+    }
 
-  function parseNum(v){
-    const t = toHalfWidth(v);
-    if (t === "") return null;
-    // Allow commas as thousands separators
-    const n = Number(t.replace(/,/g,""));
-    return Number.isFinite(n) ? n : null;
-  }
+    function parseNum(v){
+      const t = toHalfWidth(v);
+      if (t === "") return null;
+      const n = Number(t.replace(/,/g,""));
+      return Number.isFinite(n) ? n : null;
+    }
 
-  function fmt(x){
-    if (x === null) return "";
-    // show up to 3 decimals; you can change 1000 to 100 if you want 2 decimals
-    const r = Math.round(x * 1000) / 1000;
-    return (r === 0 ? 0 : r).toString();
-  }
+    // Always show exactly 3 decimals
+    function fmt(x){
+      if (x === null) return "";
+      return (Math.round(x * 1000) / 1000).toFixed(3);
+    }
 
-  const body = document.getElementById("body");
+    const body = document.getElementById("body");
 
-  function makeCellInput(id, readonly=false){
-    const td = document.createElement("td");
-    const inp = document.createElement("input");
-    inp.id = id;
-    inp.autocomplete = "off";
-    inp.spellcheck = false;
-    inp.inputMode = "decimal";
-    if (readonly) inp.readOnly = true;
-    td.appendChild(inp);
-    return td;
-  }
+    function makeCellInput(id, readonly=false){
+      const td = document.createElement("td");
+      const inp = document.createElement("input");
+      inp.id = id;
+      inp.autocomplete = "off";
+      inp.spellcheck = false;
+      inp.inputMode = "decimal";
+      if (readonly) inp.readOnly = true;
+      td.appendChild(inp);
+      return td;
+    }
 
-  function build(){
-    for (let i=1;i<=N;i++){
-      const tr = document.createElement("tr");
-      tr.appendChild(makeCellInput(`no_${i}`));
-      tr.appendChild(makeCellInput(`dist_${i}`));
-      tr.appendChild(makeCellInput(`bs_${i}`));
-      tr.appendChild(makeCellInput(`fs_${i}`));
-      tr.appendChild(makeCellInput(`plus_${i}`, true));
-      tr.appendChild(makeCellInput(`minus_${i}`, true));
-      body.appendChild(tr);
+    function build(){
+      for (let i=1;i<=N;i++){
+        const tr = document.createElement("tr");
+        tr.appendChild(makeCellInput(`no_${i}`));
+        tr.appendChild(makeCellInput(`dist_${i}`));
+        tr.appendChild(makeCellInput(`bs_${i}`));   // 後視
+        tr.appendChild(makeCellInput(`fs_${i}`));   // 前視
+        tr.appendChild(makeCellInput(`plus_${i}`, true));
+        tr.appendChild(makeCellInput(`minus_${i}`, true));
+        body.appendChild(tr);
 
-      // Recalc on ANY relevant edit (後視, 前視, 距離)
-      ["dist_", "bs_", "fs_"].forEach(p=>{
-        document.getElementById(`${p}${i}`).addEventListener("input", ()=>{
-          calcRow(i);
-          calcSums();
+        // Recalc on edit (distance included for sums)
+        ["dist_", "bs_", "fs_"].forEach(p=>{
+          document.getElementById(`${p}${i}`).addEventListener("input", ()=>{
+            calcRow(i);
+            calcSums();
+          });
         });
-      });
+      }
+      calcSums();
     }
-    calcSums();
-  }
 
-  function calcRow(i){
-    const bs = parseNum(document.getElementById(`bs_${i}`).value); // 後視
-    const fs = parseNum(document.getElementById(`fs_${i}`).value); // 前視
-    const plusEl  = document.getElementById(`plus_${i}`);
-    const minusEl = document.getElementById(`minus_${i}`);
+    function calcRow(i){
+      const bs = parseNum(document.getElementById(`bs_${i}`).value); // 後視
+      const fs = parseNum(document.getElementById(`fs_${i}`).value); // 前視
+      const plusEl  = document.getElementById(`plus_${i}`);
+      const minusEl = document.getElementById(`minus_${i}`);
 
-    plusEl.value = "";
-    minusEl.value = "";
+      plusEl.value = "";
+      minusEl.value = "";
 
-    if (bs === null || fs === null) return;
+      if (bs === null || fs === null) return;
 
-    // Your rule: Δ = 後視 - 前視
-    const d = bs - fs;
-    const a = Math.abs(d);
+      // Rule: Δ = 後視 - 前視
+      const d = bs - fs;
+      const a = Math.abs(d);
 
-    if (d > 0) plusEl.value = fmt(a);
-    else if (d < 0) minusEl.value = fmt(a);
-    // d == 0 -> keep blank
-  }
-
-  function sumCol(prefix){
-    let s = 0;
-    let any = false;
-    for (let i=1;i<=N;i++){
-      const v = parseNum(document.getElementById(`${prefix}${i}`).value);
-      if (v !== null){ s += v; any = true; }
+      if (d > 0) plusEl.value = fmt(a);
+      else if (d < 0) minusEl.value = fmt(a);
+      // d == 0 -> keep blank
     }
-    return any ? s : null;
-  }
 
-  function calcSums(){
-    document.getElementById("sum_dist").value  = fmt(sumCol("dist_"));
-    document.getElementById("sum_bs").value    = fmt(sumCol("bs_"));
-    document.getElementById("sum_fs").value    = fmt(sumCol("fs_"));
-    document.getElementById("sum_plus").value  = fmt(sumCol("plus_"));
-    document.getElementById("sum_minus").value = fmt(sumCol("minus_"));
-  }
-
-  document.getElementById("fillNoBtn").addEventListener("click", ()=>{
-    for (let i=1;i<=N;i++) document.getElementById(`no_${i}`).value = i;
-  });
-
-  document.getElementById("clearBtn").addEventListener("click", ()=>{
-    for (let i=1;i<=N;i++){
-      ["no_","dist_","bs_","fs_","plus_","minus_"].forEach(p=>{
-        document.getElementById(`${p}${i}`).value = "";
-      });
+    function sumCol(prefix){
+      let s = 0;
+      let any = false;
+      for (let i=1;i<=N;i++){
+        const v = parseNum(document.getElementById(`${prefix}${i}`).value);
+        if (v !== null){ s += v; any = true; }
+      }
+      return any ? s : null;
     }
-    calcSums();
-  });
 
-  build();
-</script>
+    function calcSums(){
+      document.getElementById("sum_dist").value  = fmt(sumCol("dist_"));
+      document.getElementById("sum_bs").value    = fmt(sumCol("bs_"));
+      document.getElementById("sum_fs").value    = fmt(sumCol("fs_"));
+      document.getElementById("sum_plus").value  = fmt(sumCol("plus_"));
+      document.getElementById("sum_minus").value = fmt(sumCol("minus_"));
+    }
+
+    document.getElementById("fillNoBtn").addEventListener("click", ()=>{
+      for (let i=1;i<=N;i++) document.getElementById(`no_${i}`).value = i;
+    });
+
+    document.getElementById("clearBtn").addEventListener("click", ()=>{
+      for (let i=1;i<=N;i++){
+        ["no_","dist_","bs_","fs_","plus_","minus_"].forEach(p=>{
+          document.getElementById(`${p}${i}`).value = "";
+        });
+      }
+      calcSums();
+    });
+
+    build();
+  </script>
 </body>
 </html>
-
