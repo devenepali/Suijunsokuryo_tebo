@@ -117,7 +117,7 @@
       padding: 6px 1px;
     }
 
-    /* Column widths: prioritize result columns */
+    /* Column widths */
     th:nth-child(1), td:nth-child(1){ width: 8%; }   /* 番号 */
     th:nth-child(2), td:nth-child(2){ width: 12%; }  /* 距離 */
     th:nth-child(3), td:nth-child(3){ width: 16%; }  /* 後視 */
@@ -205,6 +205,14 @@
           <td><input id="sum1_plus" readonly></td>
           <td><input id="sum1_minus" readonly></td>
         </tr>
+        <tr>
+          <td>距離×2</td>
+          <td><input id="sum1_dist2" readonly></td>
+          <td><input readonly></td>
+          <td><input readonly></td>
+          <td><input readonly></td>
+          <td><input readonly></td>
+        </tr>
       </tfoot>
     </table>
 
@@ -235,10 +243,17 @@
           <td><input id="sum2_plus" readonly></td>
           <td><input id="sum2_minus" readonly></td>
         </tr>
+        <tr>
+          <td>距離×2</td>
+          <td><input id="sum2_dist2" readonly></td>
+          <td><input readonly></td>
+          <td><input readonly></td>
+          <td><input readonly></td>
+          <td><input readonly></td>
+        </tr>
       </tfoot>
     </table>
 
-    <!-- One shared "+" button for BOTH tables -->
     <table>
       <tbody>
         <tr>
@@ -300,7 +315,7 @@
       const tr = document.createElement("tr");
       tr.dataset.row = "data";
 
-      const tdNo   = makeCellInput(`t${tableId}_no_${rowIndex}`, true); // auto-number, readonly
+      const tdNo   = makeCellInput(`t${tableId}_no_${rowIndex}`, true); // auto-number
       const tdDist = makeCellInput(`t${tableId}_dist_${rowIndex}`);
       const tdBs   = makeCellInput(`t${tableId}_bs_${rowIndex}`);
       const tdFs   = makeCellInput(`t${tableId}_fs_${rowIndex}`);
@@ -321,12 +336,12 @@
 
       body.appendChild(tr);
 
-      // listeners: calc row and sums
+      // listeners
       [tdDist, tdBs, tdFs].forEach((td)=>{
         td.querySelector("input").addEventListener("input", ()=>{
           calcRow(tableId, rowIndex);
           calcSums(tableId);
-          if (tableId === 1) syncDistanceReverse(); // keep 復 distance in reverse
+          if (tableId === 1) syncDistanceReverse();
         });
       });
 
@@ -339,8 +354,7 @@
     }
 
     function setAutoNumbers(){
-      // 번호: sequential across BOTH tables (1..N)
-      const total = getRowCount(1); // keep same row count for both
+      const total = getRowCount(1);
       for (let i=1;i<=total;i++){
         const a = document.getElementById(`t1_no_${i}`);
         const b = document.getElementById(`t2_no_${i}`);
@@ -350,8 +364,8 @@
     }
 
     function calcRow(tableId, i){
-      const bs = parseNum(document.getElementById(`t${tableId}_bs_${i}`).value); // 後視
-      const fs = parseNum(document.getElementById(`t${tableId}_fs_${i}`).value); // 前視
+      const bs = parseNum(document.getElementById(`t${tableId}_bs_${i}`).value);
+      const fs = parseNum(document.getElementById(`t${tableId}_fs_${i}`).value);
       const plusEl  = document.getElementById(`t${tableId}_plus_${i}`);
       const minusEl = document.getElementById(`t${tableId}_minus_${i}`);
 
@@ -360,8 +374,8 @@
 
       if (bs === null || fs === null) return;
 
-      const d = bs - fs;      // Δ = 後視 - 前視
-      const a = Math.abs(d);  // always positive value displayed
+      const d = bs - fs;     // Δ = 後視 - 前視
+      const a = Math.abs(d); // show positive value
 
       if (d > 0) plusEl.value = fmt(a);
       else if (d < 0) minusEl.value = fmt(a);
@@ -381,11 +395,16 @@
     }
 
     function calcSums(tableId){
-      document.getElementById(`sum${tableId}_dist`).value  = fmt(sumCol(tableId, "dist"));
+      const dist = sumCol(tableId, "dist");
+      document.getElementById(`sum${tableId}_dist`).value  = fmt(dist);
       document.getElementById(`sum${tableId}_bs`).value    = fmt(sumCol(tableId, "bs"));
       document.getElementById(`sum${tableId}_fs`).value    = fmt(sumCol(tableId, "fs"));
       document.getElementById(`sum${tableId}_plus`).value  = fmt(sumCol(tableId, "plus"));
       document.getElementById(`sum${tableId}_minus`).value = fmt(sumCol(tableId, "minus"));
+
+      // NEW: doubled distance row
+      const dist2 = (dist === null) ? null : dist * 2;
+      document.getElementById(`sum${tableId}_dist2`).value = fmt(dist2);
     }
 
     function recalcAll(){
@@ -396,16 +415,13 @@
       });
     }
 
-    // Distance sync: 復 distance = reverse order of 往 distance
-    // Example: 往 last row distance -> 復 row 1 distance
+    // 復 distance = reverse order of 往 distance
     function syncDistanceReverse(){
       const n = getRowCount(1);
       for (let i=1;i<=n;i++){
         const goEl = document.getElementById(`t1_dist_${i}`);
         const backEl = document.getElementById(`t2_dist_${n - i + 1}`);
-        if (goEl && backEl) {
-          backEl.value = toHalfWidth(goEl.value);
-        }
+        if (goEl && backEl) backEl.value = toHalfWidth(goEl.value);
       }
       calcSums(2);
     }
@@ -423,8 +439,8 @@
     document.getElementById("addRowBothBtn").addEventListener("click", ()=>{
       addDataRow(1);
       addDataRow(2);
-      setAutoNumbers();       // new row numbers (11,12,...)
-      syncDistanceReverse();  // re-map distances with new length
+      setAutoNumbers();
+      syncDistanceReverse();
       recalcAll();
     });
 
@@ -443,7 +459,7 @@
       recalcAll();
     });
 
-    // CSV export (prompts user to save using the browser "Save" dialog)
+    // CSV export
     function csvEscape(v){
       const s = (v ?? "").toString();
       if (/[",\n]/.test(s)) return `"${s.replace(/"/g,'""')}"`;
@@ -451,17 +467,12 @@
     }
 
     function buildCsv(){
-      const header = [
-        "区分","番号","距離","後視","前視","高低差(+)",
-        "高低差(-)"
-      ];
-
+      const header = ["区分","番号","距離","後視","前視","高低差(+)","高低差(-)"];
       const rows = [];
       rows.push(header);
 
       const n = getRowCount(1);
 
-      // 往 rows
       for (let i=1;i<=n;i++){
         rows.push([
           "往",
@@ -473,7 +484,6 @@
           toHalfWidth(document.getElementById(`t1_minus_${i}`).value),
         ]);
       }
-      // 復 rows
       for (let i=1;i<=n;i++){
         rows.push([
           "復",
@@ -486,7 +496,6 @@
         ]);
       }
 
-      // totals
       rows.push([]);
       rows.push([
         "往合計","",
@@ -497,6 +506,10 @@
         document.getElementById("sum1_minus").value
       ]);
       rows.push([
+        "往距離×2","",
+        document.getElementById("sum1_dist2").value,"","","",""
+      ]);
+      rows.push([
         "復合計","",
         document.getElementById("sum2_dist").value,
         document.getElementById("sum2_bs").value,
@@ -504,12 +517,15 @@
         document.getElementById("sum2_plus").value,
         document.getElementById("sum2_minus").value
       ]);
+      rows.push([
+        "復距離×2","",
+        document.getElementById("sum2_dist2").value,"","","",""
+      ]);
 
       return rows.map(r => r.map(csvEscape).join(",")).join("\n");
     }
 
     document.getElementById("exportCsvBtn").addEventListener("click", async ()=>{
-      // Ensure latest calculations before export
       syncDistanceReverse();
       recalcAll();
 
@@ -520,7 +536,6 @@
       const pad = (n)=> String(n).padStart(2,"0");
       const fname = `suijun_${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}.csv`;
 
-      // Prefer File System Access API when available (Chrome/Edge; some Android browsers)
       if (window.showSaveFilePicker) {
         try{
           const handle = await window.showSaveFilePicker({
@@ -532,11 +547,10 @@
           await writable.close();
           return;
         } catch(e){
-          // user cancelled or unsupported -> fall back to download
+          // cancel -> fall back
         }
       }
 
-      // Fallback: download link (Safari iOS will show share/save options)
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
