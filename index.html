@@ -117,7 +117,7 @@
       padding: 6px 1px;
     }
 
-    /* Column widths */
+    /* Column widths for main tables */
     th:nth-child(1), td:nth-child(1){ width: 8%; }   /* 番号 */
     th:nth-child(2), td:nth-child(2){ width: 12%; }  /* 距離 */
     th:nth-child(3), td:nth-child(3){ width: 16%; }  /* 後視 */
@@ -160,11 +160,34 @@
     }
     .addrow:active{ filter: brightness(0.97); }
 
+    /* Summary (top) row table */
+    .meta{
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
+    .meta th, .meta td{
+      border: 1px solid var(--bd);
+      padding: 6px 6px;
+      text-align: center;
+      font-size: 12px;
+      background: #fff;
+    }
+    .meta th{
+      background: var(--bg2);
+      font-weight: 800;
+    }
+    .meta input{
+      min-height: 36px;
+      font-size: 13px;
+    }
+
     @media (max-width: 360px){
       thead th{ font-size: 11px; padding: 6px 2px; }
       input{ font-size: 12px; min-height: 34px; }
       .col-plus input[readonly], .col-minus input[readonly]{ font-size: 13px; }
       .btn{ font-size: 13px; padding: 10px 10px; }
+      .meta th, .meta td{ font-size: 11px; padding: 6px 4px; }
     }
   </style>
 </head>
@@ -180,6 +203,30 @@
   </div>
 
   <div class="wrap">
+    <!-- NEW: top row with 自/至 and calculated fields -->
+    <table class="meta" aria-label="測量概要">
+      <thead>
+        <tr>
+          <th>自</th>
+          <th>至</th>
+          <th>既知点間の高低差</th>
+          <th>観測の高低差</th>
+          <th>出合差</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><input id="meta_from" type="text" placeholder="入力"></td>
+          <td><input id="meta_to" type="text" placeholder="入力"></td>
+          <td><input id="meta_known" type="text" readonly placeholder="計算"></td>
+          <td><input id="meta_obs" type="text" readonly placeholder="計算"></td>
+          <td><input id="meta_misclose" type="text" readonly placeholder="計算"></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="section-sep"></div>
+
     <div class="section-title">水準測量（往）</div>
     <table id="table1">
       <thead>
@@ -289,7 +336,6 @@
       return Number.isFinite(n) ? n : null;
     }
 
-    // Always show exactly 3 decimals
     function fmt(x){
       if (x === null) return "";
       return (Math.round(x * 1000) / 1000).toFixed(3);
@@ -315,7 +361,7 @@
       const tr = document.createElement("tr");
       tr.dataset.row = "data";
 
-      const tdNo   = makeCellInput(`t${tableId}_no_${rowIndex}`, true); // auto-number
+      const tdNo   = makeCellInput(`t${tableId}_no_${rowIndex}`, true);
       const tdDist = makeCellInput(`t${tableId}_dist_${rowIndex}`);
       const tdBs   = makeCellInput(`t${tableId}_bs_${rowIndex}`);
       const tdFs   = makeCellInput(`t${tableId}_fs_${rowIndex}`);
@@ -336,7 +382,6 @@
 
       body.appendChild(tr);
 
-      // listeners
       [tdDist, tdBs, tdFs].forEach((td)=>{
         td.querySelector("input").addEventListener("input", ()=>{
           calcRow(tableId, rowIndex);
@@ -374,8 +419,8 @@
 
       if (bs === null || fs === null) return;
 
-      const d = bs - fs;     // Δ = 後視 - 前視
-      const a = Math.abs(d); // show positive value
+      const d = bs - fs;
+      const a = Math.abs(d);
 
       if (d > 0) plusEl.value = fmt(a);
       else if (d < 0) minusEl.value = fmt(a);
@@ -402,7 +447,6 @@
       document.getElementById(`sum${tableId}_plus`).value  = fmt(sumCol(tableId, "plus"));
       document.getElementById(`sum${tableId}_minus`).value = fmt(sumCol(tableId, "minus"));
 
-      // NEW: doubled distance row
       const dist2 = (dist === null) ? null : dist * 2;
       document.getElementById(`sum${tableId}_dist2`).value = fmt(dist2);
     }
@@ -413,9 +457,9 @@
         for (let i=1;i<=rows;i++) calcRow(t, i);
         calcSums(t);
       });
+      // meta_* fields are placeholders for later calculations (kept as-is for now)
     }
 
-    // 復 distance = reverse order of 往 distance
     function syncDistanceReverse(){
       const n = getRowCount(1);
       for (let i=1;i<=n;i++){
@@ -457,6 +501,11 @@
       });
       syncDistanceReverse();
       recalcAll();
+
+      // keep 自/至 as user inputs; clear calculated meta fields (placeholders)
+      document.getElementById("meta_known").value = "";
+      document.getElementById("meta_obs").value = "";
+      document.getElementById("meta_misclose").value = "";
     });
 
     // CSV export
@@ -467,9 +516,21 @@
     }
 
     function buildCsv(){
-      const header = ["区分","番号","距離","後視","前視","高低差(+)","高低差(-)"];
       const rows = [];
-      rows.push(header);
+
+      // meta header + meta values
+      rows.push(["自","至","既知点間の高低差","観測の高低差","出合差"]);
+      rows.push([
+        document.getElementById("meta_from").value,
+        document.getElementById("meta_to").value,
+        document.getElementById("meta_known").value,
+        document.getElementById("meta_obs").value,
+        document.getElementById("meta_misclose").value
+      ]);
+      rows.push([]);
+
+      // main data header
+      rows.push(["区分","番号","距離","後視","前視","高低差(+)","高低差(-)"]);
 
       const n = getRowCount(1);
 
@@ -497,30 +558,10 @@
       }
 
       rows.push([]);
-      rows.push([
-        "往合計","",
-        document.getElementById("sum1_dist").value,
-        document.getElementById("sum1_bs").value,
-        document.getElementById("sum1_fs").value,
-        document.getElementById("sum1_plus").value,
-        document.getElementById("sum1_minus").value
-      ]);
-      rows.push([
-        "往距離×2","",
-        document.getElementById("sum1_dist2").value,"","","",""
-      ]);
-      rows.push([
-        "復合計","",
-        document.getElementById("sum2_dist").value,
-        document.getElementById("sum2_bs").value,
-        document.getElementById("sum2_fs").value,
-        document.getElementById("sum2_plus").value,
-        document.getElementById("sum2_minus").value
-      ]);
-      rows.push([
-        "復距離×2","",
-        document.getElementById("sum2_dist2").value,"","","",""
-      ]);
+      rows.push(["往合計","",document.getElementById("sum1_dist").value,document.getElementById("sum1_bs").value,document.getElementById("sum1_fs").value,document.getElementById("sum1_plus").value,document.getElementById("sum1_minus").value]);
+      rows.push(["往距離×2","",document.getElementById("sum1_dist2").value,"","","",""]);
+      rows.push(["復合計","",document.getElementById("sum2_dist").value,document.getElementById("sum2_bs").value,document.getElementById("sum2_fs").value,document.getElementById("sum2_plus").value,document.getElementById("sum2_minus").value]);
+      rows.push(["復距離×2","",document.getElementById("sum2_dist2").value,"","","",""]);
 
       return rows.map(r => r.map(csvEscape).join(",")).join("\n");
     }
