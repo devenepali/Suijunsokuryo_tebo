@@ -203,7 +203,7 @@
   </div>
 
   <div class="wrap">
-    <!-- top summary row -->
+    <!-- Top summary row -->
     <table class="meta" aria-label="測量概要">
       <thead>
         <tr>
@@ -393,7 +393,7 @@
           calcRow(tableId, rowIndex);
           calcSums(tableId);
           if (tableId === 1) syncDistanceReverse();
-          calcMeta(); // NEW: update top calculations
+          calcMeta();
         });
       });
 
@@ -458,18 +458,20 @@
       document.getElementById(`sum${tableId}_dist2`).value = fmt(dist2);
     }
 
-    // NEW: totals for observation height difference using B) method:
-    // Total = Σ(plus) - Σ(minus)
+    // B) Total = Σ(plus) − Σ(minus)
     function signedTotalFromPlusMinus(tableId){
-      const p = sumCol(tableId, "plus") ?? 0;
-      const m = sumCol(tableId, "minus") ?? 0;
-      // If absolutely nothing entered in both columns, treat as null
-      const any = (sumCol(tableId, "plus") !== null) || (sumCol(tableId, "minus") !== null);
+      const plusSum = sumCol(tableId, "plus");
+      const minusSum = sumCol(tableId, "minus");
+
+      const any = (plusSum !== null) || (minusSum !== null);
       if (!any) return null;
+
+      const p = plusSum ?? 0;
+      const m = minusSum ?? 0;
       return p - m;
     }
 
-    // NEW: top meta calculations
+    // Top meta calculations
     function calcMeta(){
       const from = parseNum(document.getElementById("meta_from").value);
       const to   = parseNum(document.getElementById("meta_to").value);
@@ -478,7 +480,7 @@
       const known = (from === null || to === null) ? null : (to - from);
       document.getElementById("meta_known").value = fmt(known);
 
-      // 観測の高低差
+      // 観測の高低差: average of (往 total, 復 total), but sign forced by 往 total
       const totalGo = signedTotalFromPlusMinus(1);
       const totalBack = signedTotalFromPlusMinus(2);
 
@@ -488,17 +490,17 @@
 
         const s = signOf(totalGo);
         if (s === 0){
-          // If 往 total is exactly 0, keep raw average sign
-          obs = rawAvg;
+          obs = rawAvg; // keep rawAvg sign if 往 total is 0
         } else {
           obs = s * Math.abs(rawAvg);
         }
       }
       document.getElementById("meta_obs").value = fmt(obs);
 
-      // 出合差 = 観測 - 既知
-      const misclose = (obs === null || known === null) ? null : (obs - known);
-      document.getElementById("meta_misclose").value = fmt(misclose);
+      // 出合差 = | |観測| - |既知| |
+      const miscloseAbs =
+        (obs === null || known === null) ? null : Math.abs(Math.abs(obs) - Math.abs(known));
+      document.getElementById("meta_misclose").value = fmt(miscloseAbs);
     }
 
     function recalcAll(){
@@ -539,7 +541,6 @@
       recalcAll();
     });
 
-    // meta inputs trigger meta calc
     document.getElementById("meta_from").addEventListener("input", calcMeta);
     document.getElementById("meta_to").addEventListener("input", calcMeta);
 
@@ -556,7 +557,6 @@
       });
       syncDistanceReverse();
 
-      // clear meta
       document.getElementById("meta_from").value = "";
       document.getElementById("meta_to").value = "";
       document.getElementById("meta_known").value = "";
@@ -618,11 +618,6 @@
       rows.push(["往距離×2","",document.getElementById("sum1_dist2").value,"","","",""]);
       rows.push(["復合計","",document.getElementById("sum2_dist").value,document.getElementById("sum2_bs").value,document.getElementById("sum2_fs").value,document.getElementById("sum2_plus").value,document.getElementById("sum2_minus").value]);
       rows.push(["復距離×2","",document.getElementById("sum2_dist2").value,"","","",""]);
-
-      // optional: add signed totals used for 観測の高低差 (debug/trace)
-      rows.push([]);
-      rows.push(["往 高低差合計(符号付) = Σ(+)−Σ(−)","", fmt(signedTotalFromPlusMinus(1))]);
-      rows.push(["復 高低差合計(符号付) = Σ(+)−Σ(−)","", fmt(signedTotalFromPlusMinus(2))]);
 
       return rows.map(r => r.map(csvEscape).join(",")).join("\n");
     }
