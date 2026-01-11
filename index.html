@@ -23,14 +23,40 @@
       -webkit-text-size-adjust: 100%;
     }
 
-    h1{ margin:0 0 10px; font-size: 18px; }
-    .note{ color:var(--muted); font-size: 12px; line-height: 1.5; margin-bottom: 10px; }
+    .topbar{
+      display:flex;
+      align-items:center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .titleblock h1{ margin:0; font-size: 18px; }
+    .titleblock .note{ margin: 4px 0 0; color:var(--muted); font-size: 12px; line-height: 1.4; }
+
+    .btn{
+      border:1px solid var(--bd);
+      background: var(--bg2);
+      padding: 10px 12px;
+      border-radius: 10px;
+      cursor:pointer;
+      font-size: 14px;
+      min-height: 44px;
+      white-space: nowrap;
+    }
 
     .wrap{
       border:1px solid var(--bd);
       border-radius: var(--radius);
       max-width: 100%;
       overflow: hidden;
+    }
+
+    .section-title{
+      font-weight: 800;
+      padding: 8px 10px;
+      background: var(--bg2);
+      border-bottom: 1px solid var(--bd);
+      font-size: 14px;
     }
 
     table{
@@ -83,7 +109,6 @@
       color:#111;
     }
 
-    /* Make some columns smaller, results bigger */
     .col-no input{ font-size: 11px; padding: 6px 1px; }
     .col-dist input{ font-size: 11px; padding: 6px 1px; }
     .col-plus input[readonly],
@@ -92,7 +117,7 @@
       padding: 6px 1px;
     }
 
-    /* Column widths (prioritize result columns) */
+    /* Column widths: prioritize result columns */
     th:nth-child(1), td:nth-child(1){ width: 8%; }   /* 番号 */
     th:nth-child(2), td:nth-child(2){ width: 12%; }  /* 距離 */
     th:nth-child(3), td:nth-child(3){ width: 16%; }  /* 後視 */
@@ -118,15 +143,6 @@
       margin-top: 10px;
       flex-wrap: wrap;
     }
-    button{
-      border:1px solid var(--bd);
-      background: var(--bg2);
-      padding: 10px 12px;
-      border-radius: 10px;
-      cursor:pointer;
-      font-size: 14px;
-      min-height: 44px;
-    }
 
     .addrow{
       width: 100%;
@@ -148,12 +164,23 @@
       thead th{ font-size: 11px; padding: 6px 2px; }
       input{ font-size: 12px; min-height: 34px; }
       .col-plus input[readonly], .col-minus input[readonly]{ font-size: 13px; }
+      .btn{ font-size: 13px; padding: 10px 10px; }
     }
   </style>
 </head>
 <body>
-  <h1>水準測量（往）</h1>
+  <div class="topbar">
+    <div class="titleblock">
+      <h1>水準測量</h1>
+      <div class="note">
+        計算: <b>Δ = 後視 − 前視</b> ／ Δ&gt;0 → 高低差(＋)=|Δ|、Δ&lt;0 → 高低差(－)=|Δ|（3桁小数）
+      </div>
+    </div>
+    <button id="exportCsvBtn" class="btn" type="button">CSV保存</button>
+  </div>
+
   <div class="wrap">
+    <div class="section-title">水準測量（往）</div>
     <table id="table1">
       <thead>
         <tr>
@@ -182,7 +209,8 @@
     </table>
 
     <div class="section-sep"></div>
-    <h1>水準測量（復）
+
+    <div class="section-title">水準測量（復）</div>
     <table id="table2">
       <thead>
         <tr>
@@ -209,11 +237,21 @@
         </tr>
       </tfoot>
     </table>
+
+    <!-- One shared "+" button for BOTH tables -->
+    <table>
+      <tbody>
+        <tr>
+          <td style="border:0; padding:10px;">
+            <button id="addRowBothBtn" class="addrow" type="button" title="往と復に行を追加">＋</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
   </div>
 
   <div class="btns">
-    <button id="fillNoBtn" type="button">番号を自動入力</button>
-    <button id="clearBtn" type="button">全クリア</button>
+    <button id="clearBtn" class="btn" type="button">全クリア</button>
   </div>
 
   <script>
@@ -255,27 +293,6 @@
       return td;
     }
 
-    function makeAddRowButton(tableId){
-      const tr = document.createElement("tr");
-      const td = document.createElement("td");
-      td.colSpan = 6;
-
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = "addrow";
-      btn.textContent = "+";
-      btn.title = "行を追加";
-
-      btn.addEventListener("click", ()=>{
-        addDataRow(tableId);
-        recalcAll();
-      });
-
-      td.appendChild(btn);
-      tr.appendChild(td);
-      return tr;
-    }
-
     function addDataRow(tableId){
       const body = document.getElementById(`body${tableId}`);
       const rowIndex = body.querySelectorAll("tr[data-row='data']").length + 1;
@@ -283,7 +300,7 @@
       const tr = document.createElement("tr");
       tr.dataset.row = "data";
 
-      const tdNo   = makeCellInput(`t${tableId}_no_${rowIndex}`);
+      const tdNo   = makeCellInput(`t${tableId}_no_${rowIndex}`, true); // auto-number, readonly
       const tdDist = makeCellInput(`t${tableId}_dist_${rowIndex}`);
       const tdBs   = makeCellInput(`t${tableId}_bs_${rowIndex}`);
       const tdFs   = makeCellInput(`t${tableId}_fs_${rowIndex}`);
@@ -302,30 +319,34 @@
       tr.appendChild(tdPlus);
       tr.appendChild(tdMinus);
 
-      // Insert before the "+" row if it exists; else append
-      const addRowTr = body.querySelector("tr[data-row='add']");
-      if (addRowTr) body.insertBefore(tr, addRowTr);
-      else body.appendChild(tr);
+      body.appendChild(tr);
 
-      // listeners
+      // listeners: calc row and sums
       [tdDist, tdBs, tdFs].forEach((td)=>{
         td.querySelector("input").addEventListener("input", ()=>{
           calcRow(tableId, rowIndex);
           calcSums(tableId);
+          if (tableId === 1) syncDistanceReverse(); // keep 復 distance in reverse
         });
       });
-    }
 
-    function addPlusRow(tableId){
-      const body = document.getElementById(`body${tableId}`);
-      const tr = makeAddRowButton(tableId);
-      tr.dataset.row = "add";
-      body.appendChild(tr);
+      return rowIndex;
     }
 
     function getRowCount(tableId){
       const body = document.getElementById(`body${tableId}`);
       return body.querySelectorAll("tr[data-row='data']").length;
+    }
+
+    function setAutoNumbers(){
+      // 번호: sequential across BOTH tables (1..N)
+      const total = getRowCount(1); // keep same row count for both
+      for (let i=1;i<=total;i++){
+        const a = document.getElementById(`t1_no_${i}`);
+        const b = document.getElementById(`t2_no_${i}`);
+        if (a) a.value = i;
+        if (b) b.value = i;
+      }
     }
 
     function calcRow(tableId, i){
@@ -375,46 +396,158 @@
       });
     }
 
-    function buildTable(tableId){
-      for (let i=0;i<INITIAL_ROWS;i++) addDataRow(tableId);
-      addPlusRow(tableId);
-      calcSums(tableId);
-    }
-
-    function fillNumbers(){
-      // Fill sequentially across both tables, skipping "+" rows
-      let n = 1;
-      [1,2].forEach(t=>{
-        const rows = getRowCount(t);
-        for (let i=1;i<=rows;i++){
-          const el = document.getElementById(`t${t}_no_${i}`);
-          if (el) el.value = n++;
+    // Distance sync: 復 distance = reverse order of 往 distance
+    // Example: 往 last row distance -> 復 row 1 distance
+    function syncDistanceReverse(){
+      const n = getRowCount(1);
+      for (let i=1;i<=n;i++){
+        const goEl = document.getElementById(`t1_dist_${i}`);
+        const backEl = document.getElementById(`t2_dist_${n - i + 1}`);
+        if (goEl && backEl) {
+          backEl.value = toHalfWidth(goEl.value);
         }
-      });
+      }
+      calcSums(2);
     }
 
-    function clearAll(){
+    function build(){
+      for (let i=0;i<INITIAL_ROWS;i++){
+        addDataRow(1);
+        addDataRow(2);
+      }
+      setAutoNumbers();
+      syncDistanceReverse();
+      recalcAll();
+    }
+
+    document.getElementById("addRowBothBtn").addEventListener("click", ()=>{
+      addDataRow(1);
+      addDataRow(2);
+      setAutoNumbers();       // new row numbers (11,12,...)
+      syncDistanceReverse();  // re-map distances with new length
+      recalcAll();
+    });
+
+    document.getElementById("clearBtn").addEventListener("click", ()=>{
       [1,2].forEach(t=>{
         const rows = getRowCount(t);
         for (let i=1;i<=rows;i++){
-          ["no","dist","bs","fs","plus","minus"].forEach(p=>{
+          ["dist","bs","fs","plus","minus"].forEach(p=>{
             const el = document.getElementById(`t${t}_${p}_${i}`);
             if (el) el.value = "";
           });
         }
         calcSums(t);
       });
-    }
-
-    document.getElementById("fillNoBtn").addEventListener("click", fillNumbers);
-    document.getElementById("clearBtn").addEventListener("click", ()=>{
-      clearAll();
+      syncDistanceReverse();
+      recalcAll();
     });
 
-    buildTable(1);
-    buildTable(2);
+    // CSV export (prompts user to save using the browser "Save" dialog)
+    function csvEscape(v){
+      const s = (v ?? "").toString();
+      if (/[",\n]/.test(s)) return `"${s.replace(/"/g,'""')}"`;
+      return s;
+    }
+
+    function buildCsv(){
+      const header = [
+        "区分","番号","距離","後視","前視","高低差(+)",
+        "高低差(-)"
+      ];
+
+      const rows = [];
+      rows.push(header);
+
+      const n = getRowCount(1);
+
+      // 往 rows
+      for (let i=1;i<=n;i++){
+        rows.push([
+          "往",
+          document.getElementById(`t1_no_${i}`).value,
+          toHalfWidth(document.getElementById(`t1_dist_${i}`).value),
+          toHalfWidth(document.getElementById(`t1_bs_${i}`).value),
+          toHalfWidth(document.getElementById(`t1_fs_${i}`).value),
+          toHalfWidth(document.getElementById(`t1_plus_${i}`).value),
+          toHalfWidth(document.getElementById(`t1_minus_${i}`).value),
+        ]);
+      }
+      // 復 rows
+      for (let i=1;i<=n;i++){
+        rows.push([
+          "復",
+          document.getElementById(`t2_no_${i}`).value,
+          toHalfWidth(document.getElementById(`t2_dist_${i}`).value),
+          toHalfWidth(document.getElementById(`t2_bs_${i}`).value),
+          toHalfWidth(document.getElementById(`t2_fs_${i}`).value),
+          toHalfWidth(document.getElementById(`t2_plus_${i}`).value),
+          toHalfWidth(document.getElementById(`t2_minus_${i}`).value),
+        ]);
+      }
+
+      // totals
+      rows.push([]);
+      rows.push([
+        "往合計","",
+        document.getElementById("sum1_dist").value,
+        document.getElementById("sum1_bs").value,
+        document.getElementById("sum1_fs").value,
+        document.getElementById("sum1_plus").value,
+        document.getElementById("sum1_minus").value
+      ]);
+      rows.push([
+        "復合計","",
+        document.getElementById("sum2_dist").value,
+        document.getElementById("sum2_bs").value,
+        document.getElementById("sum2_fs").value,
+        document.getElementById("sum2_plus").value,
+        document.getElementById("sum2_minus").value
+      ]);
+
+      return rows.map(r => r.map(csvEscape).join(",")).join("\n");
+    }
+
+    document.getElementById("exportCsvBtn").addEventListener("click", async ()=>{
+      // Ensure latest calculations before export
+      syncDistanceReverse();
+      recalcAll();
+
+      const csv = buildCsv();
+      const blob = new Blob([csv], {type: "text/csv;charset=utf-8"});
+
+      const now = new Date();
+      const pad = (n)=> String(n).padStart(2,"0");
+      const fname = `suijun_${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}.csv`;
+
+      // Prefer File System Access API when available (Chrome/Edge; some Android browsers)
+      if (window.showSaveFilePicker) {
+        try{
+          const handle = await window.showSaveFilePicker({
+            suggestedName: fname,
+            types: [{ description: "CSV", accept: {"text/csv": [".csv"]} }]
+          });
+          const writable = await handle.createWritable();
+          await writable.write(blob);
+          await writable.close();
+          return;
+        } catch(e){
+          // user cancelled or unsupported -> fall back to download
+        }
+      }
+
+      // Fallback: download link (Safari iOS will show share/save options)
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = fname;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(()=>URL.revokeObjectURL(url), 1000);
+    });
+
+    build();
   </script>
 </body>
 </html>
-
-
