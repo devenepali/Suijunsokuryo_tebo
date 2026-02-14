@@ -257,8 +257,7 @@
           <td><input id="sum1_dist2" readonly></td>
           <td><input readonly></td>
           <td><input readonly></td>
-          <td><input readonly></td>
-          <td><input readonly></td>
+          <td colspan="2"><input id="sum1_net" readonly></td>
         </tr>
       </tfoot>
     </table>
@@ -295,8 +294,7 @@
           <td><input id="sum2_dist2" readonly></td>
           <td><input readonly></td>
           <td><input readonly></td>
-          <td><input readonly></td>
-          <td><input readonly></td>
+          <td colspan="2"><input id="sum2_net" readonly></td>
         </tr>
       </tfoot>
     </table>
@@ -456,6 +454,11 @@
 
       const dist2 = (dist === null) ? null : dist * 2;
       document.getElementById(`sum${tableId}_dist2`).value = fmt(dist2);
+
+      // Net height difference = Σ(+) − Σ(−)
+      const net = signedTotalFromPlusMinus(tableId);
+      const netEl = document.getElementById(`sum${tableId}_net`);
+      if (netEl) netEl.value = fmt(net);
     }
 
     // B) Total = Σ(plus) − Σ(minus)
@@ -615,9 +618,9 @@
 
       rows.push([]);
       rows.push(["往合計","",document.getElementById("sum1_dist").value,document.getElementById("sum1_bs").value,document.getElementById("sum1_fs").value,document.getElementById("sum1_plus").value,document.getElementById("sum1_minus").value]);
-      rows.push(["往距離×2","",document.getElementById("sum1_dist2").value,"","","",""]);
+      rows.push(["往距離×2","",document.getElementById("sum1_dist2").value,"","",document.getElementById("sum1_net").value,""]);
       rows.push(["復合計","",document.getElementById("sum2_dist").value,document.getElementById("sum2_bs").value,document.getElementById("sum2_fs").value,document.getElementById("sum2_plus").value,document.getElementById("sum2_minus").value]);
-      rows.push(["復距離×2","",document.getElementById("sum2_dist2").value,"","","",""]);
+      rows.push(["復距離×2","",document.getElementById("sum2_dist2").value,"","",document.getElementById("sum2_net").value,""]);
 
       return rows.map(r => r.map(csvEscape).join(",")).join("\n");
     }
