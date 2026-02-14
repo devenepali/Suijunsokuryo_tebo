@@ -483,27 +483,26 @@
       const known = (from === null || to === null) ? null : (to - from);
       document.getElementById("meta_known").value = fmt(known);
 
-      // 観測の高低差: average of (往 total, 復 total), but sign forced by 往 total
-      const totalGo = signedTotalFromPlusMinus(1);
-      const totalBack = signedTotalFromPlusMinus(2);
+      // 観測の高低差: average of net values from 往 and 復, with sign from 往
+      const netGo = parseNum(document.getElementById("sum1_net").value);
+      const netBack = parseNum(document.getElementById("sum2_net").value);
 
       let obs = null;
-      if (totalGo !== null && totalBack !== null){
-        const rawAvg = (totalGo + totalBack) / 2;
-
-        const s = signOf(totalGo);
+      if (netGo !== null && netBack !== null){
+        const rawAvg = (netGo + netBack) / 2;
+        
+        const s = signOf(netGo);
         if (s === 0){
-          obs = rawAvg; // keep rawAvg sign if 往 total is 0
+          obs = rawAvg; // keep rawAvg sign if 往 net is 0
         } else {
           obs = s * Math.abs(rawAvg);
         }
       }
       document.getElementById("meta_obs").value = fmt(obs);
 
-      // 出合差 = | |観測| - |既知| |
-      const miscloseAbs =
-        (obs === null || known === null) ? null : Math.abs(Math.abs(obs) - Math.abs(known));
-      document.getElementById("meta_misclose").value = fmt(miscloseAbs);
+      // 出合差 = 既知点間の高低差 - 観測の高低差
+      const misclose = (known === null || obs === null) ? null : (known - obs);
+      document.getElementById("meta_misclose").value = fmt(misclose);
     }
 
     function recalcAll(){
