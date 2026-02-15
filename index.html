@@ -194,10 +194,7 @@
 <body>
   <div class="topbar">
     <div class="titleblock">
-      <h1>水準測量</h1>
-      <div class="note">
-        計算: <b>Δ = 後視 − 前視</b> ／ Δ&gt;0 → 高低差(＋)=|Δ|、Δ&lt;0 → 高低差(－)=|Δ|（3桁小数）
-      </div>
+      <h1>水準測量手簿</h1>
     </div>
     <button id="exportCsvBtn" class="btn" type="button">CSV保存</button>
   </div>
@@ -503,8 +500,8 @@
       }
       document.getElementById("meta_obs").value = fmt(obs);
 
-      // 出合差 = 観測の高低差 - 既知点間の高低差
-      const misclose = (known === null || obs === null) ? null : (obs - known);
+      // 出合差 = 既知点間の高低差 - 観測の高低差
+      const misclose = (known === null || obs === null) ? null : (known - obs);
       document.getElementById("meta_misclose").value = fmt(misclose);
     }
 
