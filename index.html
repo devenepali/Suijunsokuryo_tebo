@@ -484,24 +484,27 @@
       document.getElementById("meta_known").value = fmt(known);
 
       // 観測の高低差: average of net values from 往 and 復, with sign from 往
-      const netGo = parseNum(document.getElementById("sum1_net").value);
-      const netBack = parseNum(document.getElementById("sum2_net").value);
+      // Use the raw net values (not the rounded display values)
+      const netGo = signedTotalFromPlusMinus(1);
+      const netBack = signedTotalFromPlusMinus(2);
 
       let obs = null;
       if (netGo !== null && netBack !== null){
-        const rawAvg = (netGo + netBack) / 2;
+        // Calculate average: (往 - 復) / 2
+        // Note: 復 is subtracted because it's measured in opposite direction
+        const rawAvg = (netGo - netBack) / 2;
         
         const s = signOf(netGo);
         if (s === 0){
-          obs = rawAvg; // keep rawAvg sign if 往 net is 0
+          obs = rawAvg;
         } else {
           obs = s * Math.abs(rawAvg);
         }
       }
       document.getElementById("meta_obs").value = fmt(obs);
 
-      // 出合差 = 既知点間の高低差 - 観測の高低差
-      const misclose = (known === null || obs === null) ? null : (known - obs);
+      // 出合差 = 観測の高低差 - 既知点間の高低差
+      const misclose = (known === null || obs === null) ? null : (obs - known);
       document.getElementById("meta_misclose").value = fmt(misclose);
     }
 
